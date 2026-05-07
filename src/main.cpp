@@ -50,21 +50,20 @@ int main() {
   root->add(ui::panels::createHeader(" RFID Trucking System "));
 
   auto setting_panel = std::make_shared<cpptui::Horizontal>();
-  setting_panel->fixed_height = 10;
+  setting_panel->fixed_height = 13;
 
   // System Setting Panel
   setting_panel->add(ui::panels::createSystemSettingPanel(config.system));
 
   // Checkpoint Setting Panel
-  setting_panel->add(ui::panels::createCheckpointSettingPanel(
-      "Checkpoint 1", config.checkpoint_1));
+  setting_panel->add(ui::panels::createCheckpointSettingPanel(config));
 
-  setting_panel->add(ui::panels::createCheckpointSettingPanel(
-      "Checkpoint 2", config.checkpoint_2));
-
-  setting_panel->add(ui::panels::createMetricsPanel());
+  auto metrics_panel = ui::panels::createMetricsPanel();
+  setting_panel->add(metrics_panel);
 
   root->add(setting_panel);
+
+  app.add_timer(1000, [metrics_panel]() { metrics_panel->update(); });
 
   app.register_exit_key('q');
   app.run(root);
