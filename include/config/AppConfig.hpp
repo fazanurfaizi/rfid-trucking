@@ -1,5 +1,7 @@
 #pragma once
 
+#include <dotenv.h>
+
 #include <string>
 #include <vector>
 
@@ -14,6 +16,7 @@ struct CheckpointConfig {
 
 struct SystemConfig {
   std::string api_username;
+  std::string api_password;
   std::string mqtt_broker;
   std::string mqtt_client_id;
   int checkpoint_sync_seconds;

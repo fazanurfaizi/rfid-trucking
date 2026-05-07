@@ -40,6 +40,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(cpptui)
 
+FetchContent_Declare(
+  laserpants_dotenv
+  GIT_REPOSITORY https://github.com/laserpants/dotenv-cpp
+  GIT_TAG master
+)
+FetchContent_MakeAvailable(laserpants_dotenv)
+
 find_package(PahoMqttCpp REQUIRED)
 
 # file(GLOB SOURCES "src/*.cpp")
@@ -65,6 +72,7 @@ target_link_libraries(${PROJECT_NAME} PRIVATE
   PahoMqttCpp::paho-mqttpp3
   nlohmann_json::nlohmann_json
   cpptui::cpptui
+  dotenv
   SQLiteCpp
   sqlite3
   pthread
