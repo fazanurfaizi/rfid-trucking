@@ -4,6 +4,8 @@
 #include "handlers/TruckCycle.hpp"
 #include "mqtt/MqttReader.hpp"
 #include "mqtt/TopicDispatcher.hpp"
+#include "repo/CheckpointRepo.hpp"
+#include "services/CheckpointService.hpp"
 #include "ui/LogBox.hpp"
 #include "ui/MessageStore.hpp"
 #include "ui/panels/CheckpointSettingPanel.hpp"
@@ -14,6 +16,7 @@
 #include "ui/panels/SystemSettingPanel.hpp"
 #include "utils/Logger.hpp"
 
+#include <atomic>
 #include <memory>
 #include <sys/types.h>
 
@@ -22,21 +25,29 @@ int main() {
 
   cpptui::App app;
 
-  auto db = std::make_shared<Database>("locahost", "checkpoint.db");
-  db->initTable();
-
   auto dispatcher = std::make_shared<TopicDispatcher>();
   auto store = std::make_shared<MessageStore>();
   auto logger = std::make_shared<Logger>(store);
+  auto db = std::make_shared<Database>("checkpoint.db", logger);
 
   store->setUpdateCallback([&app]() {
     cpptui::Event wake_event;
     wake_event.type = cpptui::EventType::Key;
   });
 
-  auto truckCycleHandler = std::make_shared<TruckCycle>(db, logger);
+  auto checkpoint_repo = std::make_shared<CheckpointRepo>(db, logger);
+  auto checkpoint_service =
+      std::make_shared<CheckpointService>(checkpoint_repo, logger);
 
-  dispatcher->registerHandler("truck/cycle", truckCycleHandler);
+  auto truck_cycle_handler =
+      std::make_shared<TruckCycle>(checkpoint_service, logger);
+
+  auto checkpoint_needs_update = std::make_shared<std::atomic<bool>>(false);
+
+  truck_cycle_handler->setOnUpdateCallback(
+      [checkpoint_needs_update]() { *checkpoint_needs_update = true; });
+
+  dispatcher->registerHandler("truck/cycle", truck_cycle_handler);
 
   MqttReader reader(config.system.mqtt_broker, config.system.mqtt_client_id,
                     dispatcher, logger);
@@ -76,6 +87,14 @@ int main() {
   split_h->fixed_height = 30;
 
   auto checkpoint_table_panel = ui::panels::createCheckpointTablePanel();
+  checkpoint_table_panel->onPageRequested = [checkpoint_service,
+                                             checkpoint_table_panel](int page) {
+    auto data = checkpoint_service->getAll(page);
+    int total = 20;
+    checkpoint_table_panel->setCheckpoints(data, total);
+  };
+  checkpoint_table_panel->onPageRequested(1);
+
   auto logs_panel = ui::panels::createLogsPanel(&app, store);
 
   split_h->set_panes(checkpoint_table_panel, logs_panel);
@@ -85,6 +104,12 @@ int main() {
 
   app.add_timer(1000, [metrics_panel]() { metrics_panel->update(); });
   app.add_timer(500, [logs_panel]() { logs_panel->update(); });
+  app.add_timer(500, [checkpoint_table_panel, checkpoint_needs_update]() {
+    if (*checkpoint_needs_update) {
+      *checkpoint_needs_update = false;
+      checkpoint_table_panel->update();
+    }
+  });
 
   app.register_exit_key('q');
   app.run(root);
