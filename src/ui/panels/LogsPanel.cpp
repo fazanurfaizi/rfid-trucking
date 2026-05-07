@@ -10,7 +10,7 @@ using namespace cpptui;
 namespace ui::panels {
 
 LogsPanel::LogsPanel(App *app, std::shared_ptr<MessageStore> store)
-    : Border(BorderStyle::Single, Theme::current().secondary), store_(store) {
+    : Border(BorderStyle::Rounded, Theme::current().secondary), store_(store) {
   this->set_title(" Logs ", Alignment::Center);
 
   auto log_layout = std::make_shared<Vertical>();

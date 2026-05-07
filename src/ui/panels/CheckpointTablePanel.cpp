@@ -10,7 +10,7 @@ using namespace cpptui;
 namespace ui::panels {
 
 CheckpointTablePanel::CheckpointTablePanel()
-    : Border(BorderStyle::Single, Theme::current().primary) {
+    : Border(BorderStyle::Rounded, Theme::current().primary) {
   this->set_title(" Checkpoint Table ", Alignment::Center);
 
   this->table_ = std::make_shared<TablePaginated>();
