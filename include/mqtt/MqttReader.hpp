@@ -2,6 +2,7 @@
 #pragma once
 
 #include "TopicDispatcher.hpp"
+#include "utils/Logger.hpp"
 #include <memory>
 #include <mqtt/async_client.h>
 #include <string>
@@ -9,7 +10,8 @@
 class MqttReader : public virtual mqtt::callback {
 public:
   MqttReader(const std::string &server_address, const std::string &client_id,
-             std::shared_ptr<TopicDispatcher> dispatcher);
+             std::shared_ptr<TopicDispatcher> dispatcher,
+             std::shared_ptr<Logger> logger);
 
   ~MqttReader();
 
@@ -26,6 +28,7 @@ private:
   mqtt::async_client cli_;
 
   std::shared_ptr<TopicDispatcher> dispatcher_;
+  std::shared_ptr<Logger> logger_;
 
   // mqtt::callback
   void connection_lost(const std::string &cause) override;

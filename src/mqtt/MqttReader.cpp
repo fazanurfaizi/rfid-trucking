@@ -6,9 +6,11 @@
 
 MqttReader::MqttReader(const std::string &server_address,
                        const std::string &client_id,
-                       std::shared_ptr<TopicDispatcher> dispatcher)
+                       std::shared_ptr<TopicDispatcher> dispatcher,
+                       std::shared_ptr<Logger> logger)
     : server_address_(server_address), client_id_(client_id),
-      dispatcher_(dispatcher), cli_(server_address, client_id) {
+      dispatcher_(dispatcher), logger_(logger),
+      cli_(server_address, client_id) {
   this->cli_.set_callback(*this);
 }
 
@@ -24,26 +26,27 @@ bool MqttReader::connect() {
   conn_opts.set_clean_session(true);
 
   try {
-    fmt::print("Connecting to MQTT broker at {}...\n", this->server_address_);
+    this->logger_->info("Connecting to MQTT broker at {}...\n",
+                        this->server_address_);
     mqtt::token_ptr conn_token = this->cli_.connect(conn_opts);
     conn_token->wait();
-    fmt::print("Connected successfully!\n");
+    this->logger_->info("Connected successfully!\n");
     return true;
   } catch (const mqtt::exception &e) {
-    fmt::print(stderr, "Connection error: {}\n", e.what());
+    this->logger_->error("Connection error: {}\n", e.what());
     return false;
   }
 }
 
 bool MqttReader::subscribe(const std::string &topic, int qos) {
   try {
-    fmt::print("Subscribing to topic '{}'...\n", topic);
+    this->logger_->info("Subscribing to topic '{}'...\n", topic);
     mqtt::token_ptr sub_token = this->cli_.subscribe(topic, qos);
     sub_token->wait();
-    fmt::print("Subscribed!\n");
+    this->logger_->info("Subscribed!\n");
     return true;
   } catch (const mqtt::exception &e) {
-    fmt::print(stderr, "Subscription error: {}\n", e.what());
+    this->logger_->error("Subscription error: {}\n", e.what());
     return false;
   }
 }
@@ -51,11 +54,11 @@ bool MqttReader::subscribe(const std::string &topic, int qos) {
 void MqttReader::disconnect() {
   if (this->cli_.is_connected()) {
     try {
-      fmt::print("Disconnecting from broker...\n");
+      this->logger_->info("Disconnecting from broker...\n");
       this->cli_.disconnect()->wait();
-      fmt::print("Disconnected.\n");
+      this->logger_->info("Disconnected.\n");
     } catch (const mqtt::exception &e) {
-      fmt::print(stderr, "Disconnect error: {}\n", e.what());
+      this->logger_->warn("Disconnect error: {}\n", e.what());
     }
   }
 }

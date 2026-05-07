@@ -1,4 +1,5 @@
 #include "cpptui.hpp"
+#include "fmt/core.h"
 #include "ui/MessageStore.hpp"
 
 class LogBox : public cpptui::Widget {

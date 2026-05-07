@@ -32,11 +32,12 @@ FetchContent_Declare(
 
 FetchContent_MakeAvailable(SQLiteCpp)
 
-set(CPPTUI_BUILD_EXAMPLES OFF)
+set(CPPTUI_BUILD_EXAMPLES OFF CACHE INTERNAL "Disable cpptui examples")
 FetchContent_Declare(
   cpptui
   GIT_REPOSITORY https://github.com/jonoton/cpp-tui
   GIT_TAG main
+  EXCLUDE_FROM_ALL
 )
 FetchContent_MakeAvailable(cpptui)
 
