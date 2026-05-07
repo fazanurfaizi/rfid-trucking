@@ -2,14 +2,10 @@
 
 #include "cpptui.hpp"
 #include <memory>
+#include <string>
 
 namespace ui::panels {
 
-inline std::shared_ptr<cpptui::Widget> createHeader(const std::string &title) {
-  auto header = std::make_shared<cpptui::Label>(
-      " RFID Trucking System ", cpptui::Theme::current().primary);
-  header->fixed_height = 1;
-  return header;
-}
+std::shared_ptr<cpptui::Widget> createHeader(const std::string &title);
 
 } // namespace ui::panels

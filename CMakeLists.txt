@@ -49,17 +49,7 @@ FetchContent_MakeAvailable(laserpants_dotenv)
 
 find_package(PahoMqttCpp REQUIRED)
 
-# file(GLOB SOURCES "src/*.cpp")
-set(SOURCES
-  src/config/AppConfig.cpp
-  src/main.cpp
-  src/mqtt/MqttReader.cpp
-  src/mqtt/TopicDispatcher.cpp
-  src/db/Database.cpp
-  src/handlers/TruckCycle.cpp
-  src/ui/LogBox.cpp
-  src/ui/MessageStore.cpp
-)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS "src/*.cpp")
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 
