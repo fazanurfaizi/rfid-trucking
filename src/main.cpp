@@ -7,7 +7,9 @@
 #include "ui/LogBox.hpp"
 #include "ui/MessageStore.hpp"
 #include "ui/panels/CheckpointSettingPanel.hpp"
+#include "ui/panels/CheckpointTablePanel.hpp"
 #include "ui/panels/HeaderPanel.hpp"
+#include "ui/panels/LogsPanel.hpp"
 #include "ui/panels/MetricsPanel.hpp"
 #include "ui/panels/SystemSettingPanel.hpp"
 
@@ -62,6 +64,20 @@ int main() {
   setting_panel->add(metrics_panel);
 
   root->add(setting_panel);
+
+  // Horizontal split (left | right)
+  auto splitpane_layout = std::make_shared<cpptui::ScrollableVertical>();
+
+  auto split_h = std::make_shared<cpptui::SplitPane>();
+  split_h->vertical = false;
+  split_h->ratio = 0.5;
+  split_h->fixed_height = 30;
+  auto left_pane = ui::panels::createCheckpointTablePanel();
+  auto right_pane = ui::panels::createLogsPanel(&app);
+  split_h->set_panes(left_pane, right_pane);
+  splitpane_layout->add(split_h);
+  splitpane_layout->add(std::make_shared<cpptui::VerticalSpacer>(1));
+  root->add(splitpane_layout);
 
   app.add_timer(1000, [metrics_panel]() { metrics_panel->update(); });
 
