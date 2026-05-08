@@ -7,8 +7,7 @@
 
 class CheckpointRepo {
 public:
-  explicit CheckpointRepo(std::shared_ptr<Database> &db,
-                          std::shared_ptr<Logger> logger);
+  explicit CheckpointRepo(Database &db, std::shared_ptr<Logger> logger);
 
   void initTable();
   void insert(const Checkpoint &checkpoint);
@@ -18,6 +17,6 @@ public:
   void deleteOlderThan(long long timemillis);
 
 private:
-  std::shared_ptr<Database> db_;
+  Database &db_;
   std::shared_ptr<Logger> logger_;
 };

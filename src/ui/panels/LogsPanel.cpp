@@ -1,5 +1,4 @@
 #include "ui/panels/LogsPanel.hpp"
-#include "ui/LogBox.hpp"
 #include <cstddef>
 #include <memory>
 #include <sstream>

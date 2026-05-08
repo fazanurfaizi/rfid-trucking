@@ -6,7 +6,7 @@
 
 class CheckpointService {
 public:
-  explicit CheckpointService(std::shared_ptr<CheckpointRepo> repo,
+  explicit CheckpointService(CheckpointRepo &repo,
                              std::shared_ptr<Logger> logger);
 
   std::vector<Checkpoint> getAll(int page, int limit = 20);
@@ -16,6 +16,6 @@ public:
   void removeOldCheckpoints(int retention_days);
 
 private:
-  std::shared_ptr<CheckpointRepo> repo_;
+  CheckpointRepo &repo_;
   std::shared_ptr<Logger> logger_;
 };

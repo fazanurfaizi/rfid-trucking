@@ -3,12 +3,12 @@
 #include <chrono>
 #include <memory>
 
-CheckpointService::CheckpointService(std::shared_ptr<CheckpointRepo> repo,
+CheckpointService::CheckpointService(CheckpointRepo &repo,
                                      std::shared_ptr<Logger> logger)
     : repo_(repo), logger_(logger) {}
 
 std::vector<Checkpoint> CheckpointService::getAll(int page, int limit) {
-  return this->repo_->getAll();
+  return this->repo_.getAll();
 }
 
 void CheckpointService::processRfidScan(const std::string &checkpoint_code,
@@ -20,12 +20,12 @@ void CheckpointService::processRfidScan(const std::string &checkpoint_code,
                 .is_sync = false};
 
   // @TODO: validate waiting hour
-  this->repo_->insert(cp);
+  this->repo_.insert(cp);
   this->logger_->info("Inserted Checkpoint into DB: {}", rfid_code);
 }
 
 void CheckpointService::processSync() {
-  auto unsynced = this->repo_.get()->getUnsynced();
+  auto unsynced = this->repo_.getUnsynced();
   if (unsynced.empty())
     return;
 
@@ -37,7 +37,7 @@ void CheckpointService::processSync() {
     // Mock successful sync
     bool sync_success = true;
     if (sync_success) {
-      this->repo_->updateSyncStatus(cp.id, true);
+      this->repo_.updateSyncStatus(cp.id, true);
     }
   }
 }
@@ -51,7 +51,7 @@ void CheckpointService::removeOldCheckpoints(int retention_days) {
                              old_time.time_since_epoch())
                              .count();
 
-  this->repo_->deleteOlderThan(old_time_millis);
+  this->repo_.deleteOlderThan(old_time_millis);
   this->logger_->info("Removed checkpoints older than {} days.",
                       retention_days);
 }

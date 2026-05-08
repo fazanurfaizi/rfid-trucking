@@ -6,8 +6,7 @@
 #include <stdexcept>
 #include <vector>
 
-CheckpointRepo::CheckpointRepo(std::shared_ptr<Database> &db,
-                               std::shared_ptr<Logger> logger)
+CheckpointRepo::CheckpointRepo(Database &db, std::shared_ptr<Logger> logger)
     : db_(db), logger_(logger) {
   this->initTable();
 }
@@ -22,7 +21,7 @@ void CheckpointRepo::initTable() {
       is_sync BOOLEAN
     );
   )";
-  this->db_->execute(query);
+  this->db_.execute(query);
 }
 
 void CheckpointRepo::insert(const Checkpoint &cp) {
@@ -30,11 +29,11 @@ void CheckpointRepo::insert(const Checkpoint &cp) {
                     "timemillis, is_sync) VALUES (?, ?, ?, ?)";
   sqlite3_stmt *stmt;
 
-  if (sqlite3_prepare_v2(this->db_->getHandle(), sql, -1, &stmt, nullptr) !=
+  if (sqlite3_prepare_v2(this->db_.getHandle(), sql, -1, &stmt, nullptr) !=
       SQLITE_OK) {
     const std::string err_msg =
         std::string("Failed to prepare insert statement: ") +
-        sqlite3_errmsg(this->db_->getHandle());
+        sqlite3_errmsg(this->db_.getHandle());
     this->logger_->error(err_msg);
     throw std::runtime_error(err_msg);
   }
@@ -48,7 +47,7 @@ void CheckpointRepo::insert(const Checkpoint &cp) {
     sqlite3_finalize(stmt);
     const std::string err_msg =
         std::string("Failed to execute insert statement") +
-        sqlite3_errmsg(this->db_->getHandle());
+        sqlite3_errmsg(this->db_.getHandle());
 
     sqlite3_finalize(stmt);
     this->logger_->error(err_msg);
@@ -64,7 +63,7 @@ std::vector<Checkpoint> CheckpointRepo::getAll() {
                     "is_sync FROM checkpoints ORDER BY timemillis DESC";
   sqlite3_stmt *stmt;
 
-  if (sqlite3_prepare_v2(this->db_->getHandle(), sql, -1, &stmt, nullptr) ==
+  if (sqlite3_prepare_v2(this->db_.getHandle(), sql, -1, &stmt, nullptr) ==
       SQLITE_OK) {
     while (sqlite3_step(stmt) == SQLITE_ROW) {
       Checkpoint cp;
@@ -90,7 +89,7 @@ std::vector<Checkpoint> CheckpointRepo::getUnsynced() {
                     "is_sync FROM checkpoints WHERE is_sync = 0";
   sqlite3_stmt *stmt;
 
-  if (sqlite3_prepare_v2(this->db_->getHandle(), sql, -1, &stmt, nullptr) ==
+  if (sqlite3_prepare_v2(this->db_.getHandle(), sql, -1, &stmt, nullptr) ==
       SQLITE_OK) {
     while (sqlite3_step(stmt) == SQLITE_ROW) {
       Checkpoint cp;
@@ -114,7 +113,7 @@ void CheckpointRepo::updateSyncStatus(int id, bool is_sync) {
   const char *sql = "UPDATE checkpoints SET is_sync = ? WHERE id = ?";
   sqlite3_stmt *stmt;
 
-  if (sqlite3_prepare_v2(this->db_->getHandle(), sql, -1, &stmt, nullptr) ==
+  if (sqlite3_prepare_v2(this->db_.getHandle(), sql, -1, &stmt, nullptr) ==
       SQLITE_OK) {
     sqlite3_bind_int(stmt, 1, is_sync ? 1 : 0);
     sqlite3_bind_int(stmt, 2, id);
@@ -127,7 +126,7 @@ void CheckpointRepo::deleteOlderThan(long long timemillis) {
   const char *sql = "DELETE FROM checkpoints WHERE timemillis < ?";
   sqlite3_stmt *stmt;
 
-  if (sqlite3_prepare_v2(this->db_->getHandle(), sql, -1, &stmt, nullptr) ==
+  if (sqlite3_prepare_v2(this->db_.getHandle(), sql, -1, &stmt, nullptr) ==
       SQLITE_OK) {
     sqlite3_bind_int64(stmt, 1, timemillis);
     sqlite3_step(stmt);
